@@ -1,5 +1,5 @@
-<!-- BEGIN_TF_DOCS -->
 # terraform-module-hub-application-backend
+<!-- BEGIN_TF_DOCS -->
 
 ## Requirements
 
