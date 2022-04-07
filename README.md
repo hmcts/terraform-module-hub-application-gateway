@@ -1,4 +1,4 @@
-# terraform-module-hub-application-backend
+# terraform-module-hub-application-gateway
 <!-- BEGIN_TF_DOCS -->
 
 ## Requirements
