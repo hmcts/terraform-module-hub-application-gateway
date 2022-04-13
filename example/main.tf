@@ -23,7 +23,7 @@ module "app-gw" {
   common_tags                = {}
   log_analytics_workspace_id = "/subscriptions/bf308a5c-0624-4334-8ff8-8dca9fd43783/resourceGroups/oms-automation/providers/Microsoft.OperationalInsights/workspaces/hmcts-sandbox"
   key_vault_resource_group   = "cft-platform-sbox-rg"
-  subnet_name                = "hub-appgw"
-  usage_name                 = "hub"
+  subnet_name                = "apim-appgw"
+  usage_name                 = "apim"
   waf_mode                   = "Prevention"
 }

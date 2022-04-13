@@ -1,4 +1,4 @@
-# terraform-module-hub-application-gateway
+# terraform-module-apim-application-gateway
 <!-- BEGIN_TF_DOCS -->
 
 ## Requirements
