@@ -25,7 +25,12 @@ variable "location" {
 
 variable "usage_name" {
   description = "describes usage of app gateway, for use in naming resources"
-  default     = "aks"
+  default     = "hub"
+}
+
+variable "project_name" {
+  description = "name of the project, for use in naming resources"
+  default     = "cft"
 }
 
 variable "sku_name" {
@@ -61,7 +66,7 @@ variable "vnet_name" {
 
 variable "subnet_name" {
   description = "Name of the subnet"
-  default = "aks-appgw"
+  default     = "aks-appgw"
 }
 
 variable "key_vault_resource_group" {
@@ -75,7 +80,7 @@ variable "enable_waf" {
 
 variable "waf_mode" {
   description = "Mode for waf to run in"
-  default = "Detection"
+  default     = "Detection"
 }
 
 variable "common_tags" {

@@ -1,7 +1,7 @@
 resource "azurerm_application_gateway" "ag" {
   provider            = azurerm.hub
 
-  name                = "${var.usage_name}${format("%02d", count.index)}-${var.env}-agw"
+  name                = "${var.project_name}-${var.usage_name}${format("%02d", count.index)}-${var.env}-agw"
   resource_group_name = var.vnet_rg
   location            = var.location
   tags                = var.common_tags

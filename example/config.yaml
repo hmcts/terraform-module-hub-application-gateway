@@ -10,5 +10,5 @@ gateways:
         component: service
         ssl_enabled: true
         use_public_ip: true
-        health_path_override: "/status-123"
+        health_path_override: "/health/liveness"
 
