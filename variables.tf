@@ -25,7 +25,7 @@ variable "location" {
 
 variable "usage_name" {
   description = "describes usage of app gateway, for use in naming resources"
-  default     = "hub"
+  default     = "apim"
 }
 
 variable "project_name" {
