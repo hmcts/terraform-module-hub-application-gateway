@@ -7,6 +7,6 @@ resource "azurerm_public_ip" "app_gw" {
   resource_group_name = var.vnet_rg
   sku                 = "Standard"
   allocation_method   = "Static"
-  zones               = var.enable_multiple_availability_zones == true ? ["1", "2", "3"] : []
+  zones               = var.public_ip_enable_multiple_availability_zones == true ? ["1", "2", "3"] : []
   tags                = var.common_tags
 }
