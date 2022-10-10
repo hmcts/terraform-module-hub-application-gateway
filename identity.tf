@@ -11,7 +11,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_role_assignment" "identity" {
   principal_id = azurerm_user_assigned_identity.identity.principal_id
-  scope        = data.azurerm_key_vault.main.id
+  scope        = var.key_vault_id
 
   role_definition_name = "Key Vault Secrets User"
 }

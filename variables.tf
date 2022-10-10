@@ -15,8 +15,8 @@ variable "env" {
   description = "environment, will be used in resource names and for looking up the vnet details"
 }
 
-variable "vault_name" {
-  description = "vault name"
+variable "key_vault_id" {
+  type = string
 }
 
 variable "location" {
@@ -67,11 +67,6 @@ variable "vnet_name" {
 variable "subnet_name" {
   description = "Name of the subnet"
   default     = "aks-appgw"
-}
-
-variable "key_vault_resource_group" {
-  description = "Name of the resource group for the keyvault"
-  type        = string
 }
 
 variable "enable_waf" {
