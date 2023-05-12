@@ -217,7 +217,6 @@ resource "azurerm_application_gateway" "ag" {
   dynamic "trusted_client_certificate" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name                             = "${app.product}-${app.component}-trusted-cert"
-      trusted_client_certificate_names = app.trusted_client_certificate_names
       verify_client_cert_issuer_dn     = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
     }
     if lookup(app, "add_ssl_profile", false) == true
@@ -231,8 +230,8 @@ resource "azurerm_application_gateway" "ag" {
   dynamic "ssl_profile" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name                             = "${app.product}-${app.component}-sslprofile"
-      trusted_client_certificate_names = app.trusted_client_certificate_names
       verify_client_cert_issuer_dn     = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
+      trusted_client_certificate_names = ["${app.product}-${app.component}-trusted-cert"]
     }
     if lookup(app, "add_ssl_profile", false) == true
     ]
