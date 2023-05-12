@@ -1,5 +1,5 @@
 resource "azurerm_application_gateway" "ag" {
-  provider            = azurerm.hub
+  provider = azurerm.hub
 
   name                = "${var.project_name}-${var.usage_name}${format("%02d", count.index)}-${var.env}-agw"
   resource_group_name = var.vnet_rg
@@ -121,7 +121,7 @@ resource "azurerm_application_gateway" "ag" {
 
   ssl_certificate {
     name                = local.gateways[count.index].gateway_configuration.certificate_name
-    key_vault_secret_id = data.azurerm_key_vault_secret.certificate[count.index].versionless_id
+    key_vault_secret_id = data.azurerm_key_vault_secret.certificate[count.index].value
   }
 
   dynamic "http_listener" {
@@ -134,6 +134,7 @@ resource "azurerm_application_gateway" "ag" {
       ssl_enabled             = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
       ssl_certificate_name    = local.gateways[count.index].gateway_configuration.certificate_name
       exclude_env_in_app_name = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
+      ssl_profile_name        = contains(keys(app), "trusted_client_certificate_names") ? "${app.product}-${app.component}-sslprofile" : ""
     }]
 
     content {
@@ -143,6 +144,7 @@ resource "azurerm_application_gateway" "ag" {
       protocol                       = http_listener.value.ssl_enabled ? "Https" : "Http"
       host_name                      = http_listener.value.ssl_enabled ? http_listener.value.ssl_host_name : http_listener.value.exclude_env_in_app_name ? http_listener.value.host_name_exclude_env : http_listener.value.host_name_include_env
       ssl_certificate_name           = http_listener.value.ssl_enabled ? http_listener.value.ssl_certificate_name : ""
+      ssl_profile_name               = http_listener.value.ssl_profile_name
     }
   }
 
@@ -183,7 +185,7 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "request_routing_rule" {
     for_each = [for i, app in local.gateways[count.index].app_configuration : {
-      name = "${app.product}-${app.component}"
+      name     = "${app.product}-${app.component}"
       priority = ((i + 1) * 10)
     }]
 
@@ -209,6 +211,35 @@ resource "azurerm_application_gateway" "ag" {
       rule_type                   = "Basic"
       http_listener_name          = request_routing_rule.value.name
       redirect_configuration_name = request_routing_rule.value.name
+    }
+  }
+
+  dynamic "trusted_client_certificate" {
+    for_each = [for app in local.gateways[count.index].app_configuration : {
+      name                             = "${app.product}-${app.component}-trusted-cert"
+      trusted_client_certificate_names = app.trusted_client_certificate_names
+      verify_client_cert_issuer_dn     = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
+    }
+    if lookup(app, "add_ssl_profile", false) == true
+    ]
+    content {
+      name = trusted_client_certificate.value.name
+      data = data.azurerm_key_vault_secret.certificate[count.index].value
+    }
+  }
+
+  dynamic "ssl_profile" {
+    for_each = [for app in local.gateways[count.index].app_configuration : {
+      name                             = "${app.product}-${app.component}-sslprofile"
+      trusted_client_certificate_names = app.trusted_client_certificate_names
+      verify_client_cert_issuer_dn     = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
+    }
+    if lookup(app, "add_ssl_profile", false) == true
+    ]
+    content {
+      name                             = ssl_profile.value.name
+      trusted_client_certificate_names = ssl_profile.value.trusted_client_certificate_names
+      verify_client_cert_issuer_dn     = ssl_profile.value.verify_client_cert_issuer_dn
     }
   }
 
