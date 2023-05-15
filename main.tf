@@ -223,7 +223,7 @@ resource "azurerm_application_gateway" "ag" {
     ]
     content {
       name = trusted_client_certificate.value.name
-      data = data.azurerm_key_vault_secret.certificate[count.index].value
+      data = file("${path.module}/merged.pem")
     }
   }
 
@@ -242,7 +242,7 @@ resource "azurerm_application_gateway" "ag" {
     }
   }
 
-  depends_on = [azurerm_role_assignment.identity]
+  depends_on = [azurerm_role_assignment.identity, null_resource.root_ca]
 }
 
 data "azurerm_monitor_diagnostic_categories" "diagnostic_categories" {
@@ -267,5 +267,16 @@ resource "azurerm_monitor_diagnostic_setting" "diagnostic_settings" {
         enabled = true
       }
     }
+  }
+}
+
+
+resource "null_resource" "root_ca" {
+  triggers = {
+     script_hash    = filesha256("${path.module}/download_root_certs.bash")
+  }
+
+  provisioner "local-exec" {
+    command = "${path.module}/download_root_certs.bash"
   }
 }
