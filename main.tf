@@ -271,12 +271,12 @@ resource "azurerm_monitor_diagnostic_setting" "diagnostic_settings" {
 }
 
 
-resource "null_resource" "root_ca" {
-  triggers = {
-    script_hash = filesha256("${path.module}/download_root_certs.bash")
-  }
+# resource "null_resource" "root_ca" {
+#   triggers = {
+#     script_hash = filesha256("${path.module}/download_root_certs.bash")
+#   }
 
-  provisioner "local-exec" {
-    command = "${path.module}/download_root_certs.bash"
-  }
-}
+#   provisioner "local-exec" {
+#     command = "${path.module}/download_root_certs.bash"
+#   }
+# }
