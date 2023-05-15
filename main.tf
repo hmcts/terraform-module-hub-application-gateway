@@ -227,20 +227,20 @@ resource "azurerm_application_gateway" "ag" {
   #   }
   # }
 
-  dynamic "ssl_profile" {
-    for_each = [for app in local.gateways[count.index].app_configuration : {
-      name                             = "${app.product}-${app.component}-sslprofile"
-      verify_client_cert_issuer_dn     = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
-      trusted_client_certificate_names = ["${app.product}-${app.component}-trusted-cert"]
-      }
-      if lookup(app, "add_ssl_profile", false) == true
-    ]
-    content {
-      name                             = ssl_profile.value.name
-      trusted_client_certificate_names = ssl_profile.value.trusted_client_certificate_names
-      verify_client_cert_issuer_dn     = ssl_profile.value.verify_client_cert_issuer_dn
-    }
-  }
+  # dynamic "ssl_profile" {
+  #   for_each = [for app in local.gateways[count.index].app_configuration : {
+  #     name                             = "${app.product}-${app.component}-sslprofile"
+  #     verify_client_cert_issuer_dn     = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
+  #     trusted_client_certificate_names = ["${app.product}-${app.component}-trusted-cert"]
+  #     }
+  #     if lookup(app, "add_ssl_profile", false) == true
+  #   ]
+  #   content {
+  #     name                             = ssl_profile.value.name
+  #     trusted_client_certificate_names = ssl_profile.value.trusted_client_certificate_names
+  #     verify_client_cert_issuer_dn     = ssl_profile.value.verify_client_cert_issuer_dn
+  #   }
+  # }
 
   depends_on = [azurerm_role_assignment.identity, null_resource.root_ca]
 }
