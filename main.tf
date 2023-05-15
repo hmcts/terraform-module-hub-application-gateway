@@ -214,18 +214,18 @@ resource "azurerm_application_gateway" "ag" {
     }
   }
 
-  dynamic "trusted_client_certificate" {
-    for_each = [for app in local.gateways[count.index].app_configuration : {
-      name                         = "${app.product}-${app.component}-trusted-cert"
-      verify_client_cert_issuer_dn = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
-      }
-      if lookup(app, "add_ssl_profile", false) == true
-    ]
-    content {
-      name = trusted_client_certificate.value.name
-      data = base64encode("erged.pem")
-    }
-  }
+  # dynamic "trusted_client_certificate" {
+  #   for_each = [for app in local.gateways[count.index].app_configuration : {
+  #     name                         = "${app.product}-${app.component}-trusted-cert"
+  #     verify_client_cert_issuer_dn = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
+  #     }
+  #     if lookup(app, "add_ssl_profile", false) == true
+  #   ]
+  #   content {
+  #     name = trusted_client_certificate.value.name
+  #     data = "erged.pem"
+  #   }
+  # }
 
   dynamic "ssl_profile" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
