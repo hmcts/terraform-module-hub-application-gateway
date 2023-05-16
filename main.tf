@@ -134,7 +134,7 @@ resource "azurerm_application_gateway" "ag" {
       ssl_enabled             = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
       ssl_certificate_name    = local.gateways[count.index].gateway_configuration.certificate_name
       exclude_env_in_app_name = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
-      # ssl_profile_name        = contains(keys(app), "trusted_client_certificate_names") ? "${app.product}-${app.component}-sslprofile" : ""
+      ssl_profile_name        = contains(keys(app), "add_ssl_profile") ? "${app.product}-${app.component}-sslprofile" : ""
     }]
 
     content {
@@ -144,7 +144,7 @@ resource "azurerm_application_gateway" "ag" {
       protocol                       = http_listener.value.ssl_enabled ? "Https" : "Http"
       host_name                      = http_listener.value.ssl_enabled ? http_listener.value.ssl_host_name : http_listener.value.exclude_env_in_app_name ? http_listener.value.host_name_exclude_env : http_listener.value.host_name_include_env
       ssl_certificate_name           = http_listener.value.ssl_enabled ? http_listener.value.ssl_certificate_name : ""
-      # ssl_profile_name               = http_listener.value.ssl_profile_name
+      ssl_profile_name               = http_listener.value.ssl_profile_name
     }
   }
 
@@ -214,35 +214,35 @@ resource "azurerm_application_gateway" "ag" {
     }
   }
 
-  # dynamic "trusted_client_certificate" {
-  #   for_each = [for app in local.gateways[count.index].app_configuration : {
-  #     name                         = "${app.product}-${app.component}-trusted-cert"
-  #     verify_client_cert_issuer_dn = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
-  #     }
-  #     if lookup(app, "add_ssl_profile", false) == true
-  #   ]
-  #   content {
-  #     name = trusted_client_certificate.value.name
-  #     data = "erged.pem"
-  #   }
-  # }
+  dynamic "trusted_client_certificate" {
+    for_each = [for app in local.gateways[count.index].app_configuration : {
+      name                         = "${app.product}-${app.component}-trusted-cert"
+      verify_client_cert_issuer_dn = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
+      }
+      if lookup(app, "add_ssl_profile", false) == true
+    ]
+    content {
+      name = trusted_client_certificate.value.name
+      data = "merged.pem"
+    }
+  }
 
-  # dynamic "ssl_profile" {
-  #   for_each = [for app in local.gateways[count.index].app_configuration : {
-  #     name                             = "${app.product}-${app.component}-sslprofile"
-  #     verify_client_cert_issuer_dn     = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
-  #     trusted_client_certificate_names = ["${app.product}-${app.component}-trusted-cert"]
-  #     }
-  #     if lookup(app, "add_ssl_profile", false) == true
-  #   ]
-  #   content {
-  #     name                             = ssl_profile.value.name
-  #     trusted_client_certificate_names = ssl_profile.value.trusted_client_certificate_names
-  #     verify_client_cert_issuer_dn     = ssl_profile.value.verify_client_cert_issuer_dn
-  #   }
-  # }
+  dynamic "ssl_profile" {
+    for_each = [for app in local.gateways[count.index].app_configuration : {
+      name                             = "${app.product}-${app.component}-sslprofile"
+      verify_client_cert_issuer_dn     = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
+      trusted_client_certificate_names = ["${app.product}-${app.component}-trusted-cert"]
+      }
+      if lookup(app, "add_ssl_profile", false) == true
+    ]
+    content {
+      name                             = ssl_profile.value.name
+      trusted_client_certificate_names = ssl_profile.value.trusted_client_certificate_names
+      verify_client_cert_issuer_dn     = ssl_profile.value.verify_client_cert_issuer_dn
+    }
+  }
 
-  depends_on = [azurerm_role_assignment.identity]
+  depends_on = [azurerm_role_assignment.identity,null_resource.root_ca]
 }
 
 data "azurerm_monitor_diagnostic_categories" "diagnostic_categories" {
@@ -271,12 +271,12 @@ resource "azurerm_monitor_diagnostic_setting" "diagnostic_settings" {
 }
 
 
-# resource "null_resource" "root_ca" {
-#   triggers = {
-#     script_hash = filesha256("${path.module}/download_root_certs.bash")
-#   }
+resource "null_resource" "root_ca" {
+  triggers = {
+    script_hash = filesha256("${path.module}/download_root_certs.bash")
+  }
 
-#   provisioner "local-exec" {
-#     command = "${path.module}/download_root_certs.bash"
-#   }
-# }
+  provisioner "local-exec" {
+    command = "${path.module}/download_root_certs.bash"
+  }
+}
