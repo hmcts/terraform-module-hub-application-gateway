@@ -63,7 +63,6 @@ Please note that the public CA and intemediate CA are getting downloaded and mer
 | <a name="input_vnet_rg"></a> [vnet\_rg](#input\_vnet\_rg) | Name of the virtual Network resource group | `string` | n/a | yes |
 | <a name="input_waf_mode"></a> [waf\_mode](#input\_waf\_mode) | Mode for waf to run in | `string` | `"Detection"` | no |
 | <a name="input_yaml_path"></a> [yaml\_path](#input\_yaml\_path) | path to yaml config file | `any` | n/a | yes |
-| <a name="input_identity_name"></a> [usage\_name](#input\_identity\_name) | describes name of the identity | `string` | `"apim"` | no |
 ## Outputs
 
 No outputs.

@@ -1,6 +1,6 @@
 resource "azurerm_user_assigned_identity" "identity" {
   provider            = azurerm.hub
-  name                = "${var.identity_name}-${var.env}-agw"
+  name                = "${var.project_name}-${var.usage_name}-${var.env}-agw"
   resource_group_name = var.vnet_rg
   location            = var.location
 

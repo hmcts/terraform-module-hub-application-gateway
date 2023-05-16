@@ -101,8 +101,3 @@ variable "public_ip_enable_multiple_availability_zones" {
 variable "exclusions" {
   default = []
 }
-
-variable "identity_name" {
-  description = "Prefix name of the identity"
-  default     = "apim"
-}
