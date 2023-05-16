@@ -5,7 +5,7 @@
 
 No requirements.
 
-# mTLs
+# mTLS
 
 In order to add client authentication support for the Application gateway, you have to send this `add_ssl_profile` property `true` from the consuming repository.
 
