@@ -121,7 +121,7 @@ resource "azurerm_application_gateway" "ag" {
 
   ssl_certificate {
     name                = local.gateways[count.index].gateway_configuration.certificate_name
-    key_vault_secret_id = data.azurerm_key_vault_secret.certificate[count.index].value
+    key_vault_secret_id = data.azurerm_key_vault_secret.certificate[count.index].versionless_id
   }
 
   dynamic "http_listener" {
