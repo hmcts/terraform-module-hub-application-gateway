@@ -242,7 +242,7 @@ resource "azurerm_application_gateway" "ag" {
     }
   }
 
-  depends_on = [azurerm_role_assignment.identity,null_resource.root_ca]
+  depends_on = [azurerm_role_assignment.identity, null_resource.root_ca]
 }
 
 data "azurerm_monitor_diagnostic_categories" "diagnostic_categories" {
@@ -273,7 +273,7 @@ resource "azurerm_monitor_diagnostic_setting" "diagnostic_settings" {
 
 resource "null_resource" "root_ca" {
   triggers = {
-    script_hash = filesha256("${path.module}/download_root_certs.bash")
+    always_run = timestamp()
   }
 
   provisioner "local-exec" {
