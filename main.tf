@@ -134,7 +134,7 @@ resource "azurerm_application_gateway" "ag" {
       ssl_enabled             = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
       ssl_certificate_name    = local.gateways[count.index].gateway_configuration.certificate_name
       exclude_env_in_app_name = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
-      ssl_profile_name        = contains(keys(app), "trusted_client_certificate_names") ? "${app.product}-${app.component}-sslprofile" : ""
+      # ssl_profile_name        = contains(keys(app), "trusted_client_certificate_names") ? "${app.product}-${app.component}-sslprofile" : ""
     }]
 
     content {
@@ -144,7 +144,7 @@ resource "azurerm_application_gateway" "ag" {
       protocol                       = http_listener.value.ssl_enabled ? "Https" : "Http"
       host_name                      = http_listener.value.ssl_enabled ? http_listener.value.ssl_host_name : http_listener.value.exclude_env_in_app_name ? http_listener.value.host_name_exclude_env : http_listener.value.host_name_include_env
       ssl_certificate_name           = http_listener.value.ssl_enabled ? http_listener.value.ssl_certificate_name : ""
-      ssl_profile_name               = http_listener.value.ssl_profile_name
+      # ssl_profile_name               = http_listener.value.ssl_profile_name
     }
   }
 
