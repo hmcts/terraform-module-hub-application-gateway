@@ -242,7 +242,7 @@ resource "azurerm_application_gateway" "ag" {
   #   }
   # }
 
-  depends_on = [azurerm_role_assignment.identity, null_resource.root_ca]
+  depends_on = [azurerm_role_assignment.identity]
 }
 
 data "azurerm_monitor_diagnostic_categories" "diagnostic_categories" {
