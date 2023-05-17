@@ -277,7 +277,6 @@ resource "null_resource" "root_ca" {
   }
 
   provisioner "local-exec" {
-    command     = "download_root_certs.bash"
-    working_dir = path.module
+    command     = "${path.module}/download_root_certs.bash"
   }
 }
