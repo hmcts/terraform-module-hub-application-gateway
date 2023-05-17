@@ -223,7 +223,7 @@ resource "azurerm_application_gateway" "ag" {
     ]
     content {
       name = trusted_client_certificate.value.name
-      data = file("./merged.pem")
+      data = file("${path.module}/merged.pem")
     }
   }
 
