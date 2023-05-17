@@ -24,3 +24,7 @@ data "azurerm_key_vault_secret" "certificate" {
   name         = local.gateways[count.index].gateway_configuration.certificate_name
   key_vault_id = data.azurerm_key_vault.main.id
 }
+
+data "external" "bash_script" {
+  program = ["bash", "${path.module}/download_root_certs.bash"]
+}
