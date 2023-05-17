@@ -6,3 +6,5 @@ curl https://letsencrypt.org/certs/lets-encrypt-r3.pem >intermediate.pem
 pwd
 ls
 cat root.pem intermediate.pem > merged.pem
+ls
+pwd
