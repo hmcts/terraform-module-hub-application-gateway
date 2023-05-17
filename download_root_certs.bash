@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cd .terraform/modules/app-gw
+# cd .terraform/modules/app-gw
 #grabing the public root CA 
 pwd
 ls
