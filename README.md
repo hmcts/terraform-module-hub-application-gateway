@@ -5,6 +5,12 @@
 
 No requirements.
 
+# mTLS
+
+In order to add client authentication support for the Application gateway, you have to send this `add_ssl_profile` property `true` from the consuming repository.
+
+Please note that the public CA and intemediate CA are getting downloaded and merged using `download_root_certs.bash` script and then its get added as `ssl_profile` for the application gateway.
+
 ## Providers
 
 | Name | Version |
@@ -23,6 +29,7 @@ No requirements.
 | [azurerm_public_ip.app_gw](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
 | [azurerm_role_assignment.identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_user_assigned_identity.identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) | resource |
+| [null_resource.root_ca](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_key_vault.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_key_vault_secret.certificate](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -56,7 +63,6 @@ No requirements.
 | <a name="input_vnet_rg"></a> [vnet\_rg](#input\_vnet\_rg) | Name of the virtual Network resource group | `string` | n/a | yes |
 | <a name="input_waf_mode"></a> [waf\_mode](#input\_waf\_mode) | Mode for waf to run in | `string` | `"Detection"` | no |
 | <a name="input_yaml_path"></a> [yaml\_path](#input\_yaml\_path) | path to yaml config file | `any` | n/a | yes |
-
 ## Outputs
 
 No outputs.
