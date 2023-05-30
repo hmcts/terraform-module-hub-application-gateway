@@ -196,6 +196,7 @@ resource "azurerm_application_gateway" "ag" {
       http_listener_name         = request_routing_rule.value.name
       backend_address_pool_name  = request_routing_rule.value.name
       backend_http_settings_name = request_routing_rule.value.name
+      rewrite_rule_set_name      = "${request_routing_rule.value.name}-rewriterule"
     }
   }
 
