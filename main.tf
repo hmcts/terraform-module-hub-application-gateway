@@ -185,8 +185,9 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "request_routing_rule" {
     for_each = [for i, app in local.gateways[count.index].app_configuration : {
-      name     = "${app.product}-${app.component}"
-      priority = ((i + 1) * 10)
+      name             = "${app.product}-${app.component}"
+      priority         = ((i + 1) * 10)
+      add_rewrite_rule = contains(keys(app), "add_rewrite_rule") ? app.add_rewrite_rule : false
     }]
 
     content {
@@ -196,7 +197,7 @@ resource "azurerm_application_gateway" "ag" {
       http_listener_name         = request_routing_rule.value.name
       backend_address_pool_name  = request_routing_rule.value.name
       backend_http_settings_name = request_routing_rule.value.name
-      rewrite_rule_set_name      = "${request_routing_rule.value.name}-rewriterule"
+      rewrite_rule_set_name      = request_routing_rule.value.add_rewrite_rule ? "${request_routing_rule.value.name}-rewriterule" : null
     }
   }
 
