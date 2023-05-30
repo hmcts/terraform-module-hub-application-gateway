@@ -242,6 +242,26 @@ resource "azurerm_application_gateway" "ag" {
     }
   }
 
+  dynamic "rewrite_rule_set" {
+    for_each = [for app in local.gateways[count.index].app_configuration : {
+      name = "${app.product}-${app.component}-rewriterule"
+      }
+      if lookup(app, "add_rewrite_rule", false) == true
+    ]
+    content {
+      name = rewrite_rule_set.value.name
+      rewrite_rule {
+        name          = "ClientCertAddCustomHeaderRule"
+        rule_sequence = "100"
+
+        request_header_configuration {
+          header_name  = "X-ARR-ClientCert-AGW"
+          header_value = "{var_client_certificate}"
+        }
+      }
+    }
+  }
+
   depends_on = [azurerm_role_assignment.identity, data.external.bash_script]
 }
 
