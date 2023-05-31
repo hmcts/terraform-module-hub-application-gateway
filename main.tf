@@ -185,8 +185,9 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "request_routing_rule" {
     for_each = [for i, app in local.gateways[count.index].app_configuration : {
-      name     = "${app.product}-${app.component}"
-      priority = ((i + 1) * 10)
+      name             = "${app.product}-${app.component}"
+      priority         = ((i + 1) * 10)
+      add_rewrite_rule = contains(keys(app), "add_rewrite_rule") ? app.add_rewrite_rule : false
     }]
 
     content {
@@ -196,6 +197,7 @@ resource "azurerm_application_gateway" "ag" {
       http_listener_name         = request_routing_rule.value.name
       backend_address_pool_name  = request_routing_rule.value.name
       backend_http_settings_name = request_routing_rule.value.name
+      rewrite_rule_set_name      = request_routing_rule.value.add_rewrite_rule ? "${request_routing_rule.value.name}-rewriterule" : null
     }
   }
 
@@ -239,6 +241,26 @@ resource "azurerm_application_gateway" "ag" {
       name                             = ssl_profile.value.name
       trusted_client_certificate_names = ssl_profile.value.trusted_client_certificate_names
       verify_client_cert_issuer_dn     = ssl_profile.value.verify_client_cert_issuer_dn
+    }
+  }
+
+  dynamic "rewrite_rule_set" {
+    for_each = [for app in local.gateways[count.index].app_configuration : {
+      name = "${app.product}-${app.component}-rewriterule"
+      }
+      if lookup(app, "add_rewrite_rule", false) == true
+    ]
+    content {
+      name = rewrite_rule_set.value.name
+      rewrite_rule {
+        name          = "ClientCertAddCustomHeaderRule"
+        rule_sequence = "100"
+
+        request_header_configuration {
+          header_name  = "X-ARR-ClientCert-AGW"
+          header_value = "{var_client_certificate}"
+        }
+      }
     }
   }
 
