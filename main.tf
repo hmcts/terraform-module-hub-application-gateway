@@ -265,7 +265,7 @@ resource "azurerm_application_gateway" "ag" {
           header_value = "{var_client_certificate_subject}"
         }
         request_header_configuration {
-          header_name  = "uri_path"
+          header_name  = "URI-PATH-AGW"
           header_value = "{var_uri_path}"
         }
       }
