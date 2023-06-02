@@ -260,6 +260,14 @@ resource "azurerm_application_gateway" "ag" {
           header_name  = "X-ARR-ClientCert-AGW"
           header_value = "{var_client_certificate}"
         }
+        request_header_configuration {
+          header_name  = "X-ARR-ClientCertSub-AGW"
+          header_value = "{var_client_certificate_subject}"
+        }
+        request_header_configuration {
+          header_name  = "uri_path"
+          header_value = "{var_uri_path}"
+        }
       }
     }
   }
