@@ -134,7 +134,7 @@ resource "azurerm_application_gateway" "ag" {
       ssl_enabled             = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
       ssl_certificate_name    = local.gateways[count.index].gateway_configuration.certificate_name
       exclude_env_in_app_name = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
-      ssl_profile_name        = contains(keys(app), "add_ssl_profile") ? "${app.product}-${app.component}-sslprofile" : ""
+      ssl_profile_name        = lookup(app, "add_ssl_profile", false) == true ? "${app.product}-${app.component}-sslprofile" : ""
     }]
 
     content {
