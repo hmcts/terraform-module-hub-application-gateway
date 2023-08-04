@@ -8,9 +8,6 @@ No requirements.
 # mTLS
 
 In order to add client authentication support for the Application gateway, you have to send this `add_ssl_profile` property `true` from the consuming repository.
-
-Please note that the public CA and intemediate CA are getting downloaded and merged using `download_root_certs.bash` script and then its get added as `ssl_profile` for the application gateway.
-
 ## Providers
 
 | Name | Version |
