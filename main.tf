@@ -225,7 +225,7 @@ resource "azurerm_application_gateway" "ag" {
     ]
     content {
       name = trusted_client_certificate.value.name
-      data = var.trusted_client_certificate_data
+      data = var.trusted_client_certificate_data[certificate_name].path
     }
   }
 
