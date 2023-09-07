@@ -220,13 +220,13 @@ resource "azurerm_application_gateway" "ag" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name                         = "${app.product}-${app.component}-trusted-cert"
       verify_client_cert_issuer_dn = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
-      data = contains(keys(app), "certificate_name") ? app.certificate_name : null
+      data = contains(keys(app), "certificate_name") ? var.trusted_client_certificate_data[app.certificate_name].path  : ""
       }
       if lookup(app, "add_ssl_profile", false) == true
     ]
     content {
       name = trusted_client_certificate.value.name
-      data = var.trusted_client_certificate_data[trusted_client_certificate.value.data].path
+      data = trusted_client_certificate.value.data
     }
   }
 
