@@ -140,7 +140,7 @@ resource "azurerm_application_gateway" "ag" {
       frontend_ip_name        = contains(keys(app), "use_public_ip") ? "appGwPublicFrontendIp" : "appGwPrivateFrontendIp"
       ssl_host_name           = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.ssl_host_name_suffix])
       ssl_enabled             = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
-      ssl_certificate_name    = ${app.ssl_certificate_name}
+      ssl_certificate_name    = app.ssl_certificate_name
       exclude_env_in_app_name = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
       ssl_profile_name        = lookup(app, "add_ssl_profile", false) == true ? "${app.product}-${app.component}-sslprofile" : ""
     }]
