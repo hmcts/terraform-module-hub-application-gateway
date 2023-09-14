@@ -120,8 +120,16 @@ resource "azurerm_application_gateway" "ag" {
   }
 
   ssl_certificate {
-    name                = local.gateways[count.index].gateway_configuration.certificate_name
-    key_vault_secret_id = data.azurerm_key_vault_secret.certificate[count.index].versionless_id
+    for_each = [for certificates in local.gateways[count.index].ssl_certificates : {
+      name                = "${certificates.certificate_name}"
+      key_vault_secret_id = data.azurerm_key_vault_secret.certificate[certificates.certificate_name].versionless_id
+    }]
+    content {
+
+      name                = ssl_certificate.value.name
+      key_vault_secret_id = ssl_certificate.value.key_vault_secret_id
+    }
+
   }
 
   dynamic "http_listener" {
@@ -132,7 +140,7 @@ resource "azurerm_application_gateway" "ag" {
       frontend_ip_name        = contains(keys(app), "use_public_ip") ? "appGwPublicFrontendIp" : "appGwPrivateFrontendIp"
       ssl_host_name           = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), local.gateways[count.index].gateway_configuration.ssl_host_name_suffix])
       ssl_enabled             = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
-      ssl_certificate_name    = local.gateways[count.index].gateway_configuration.certificate_name
+      ssl_certificate_name    = ${app.ssl_certificate_name}
       exclude_env_in_app_name = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
       ssl_profile_name        = lookup(app, "add_ssl_profile", false) == true ? "${app.product}-${app.component}-sslprofile" : ""
     }]
@@ -220,7 +228,7 @@ resource "azurerm_application_gateway" "ag" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name                         = "${app.product}-${app.component}-trusted-cert"
       verify_client_cert_issuer_dn = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
-      data = contains(keys(app), "certificate_name") ? var.trusted_client_certificate_data[app.certificate_name].path  : false
+      data                         = contains(keys(app), "certificate_name") ? var.trusted_client_certificate_data[app.certificate_name].path : false
       }
       if lookup(app, "add_ssl_profile", false) == true
     ]

@@ -20,7 +20,7 @@ data "azurerm_key_vault" "main" {
 
 data "azurerm_key_vault_secret" "certificate" {
   provider     = azurerm.kv
-  count        = length(local.gateways)
-  name         = local.gateways[count.index].gateway_configuration.certificate_name
+  for_each     = { for cert in distinct([for cert in local.ssl_certs : cert.name]) : cert => cert }
+  name         = each.key
   key_vault_id = data.azurerm_key_vault.main.id
 }
