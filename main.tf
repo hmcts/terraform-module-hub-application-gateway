@@ -119,7 +119,7 @@ resource "azurerm_application_gateway" "ag" {
     type         = "UserAssigned"
   }
 
-  ssl_certificate {
+  dynamic "ssl_certificate" {
     for_each = [for certificates in local.gateways[count.index].ssl_certificates : {
       name                = "${certificates.certificate_name}"
       key_vault_secret_id = data.azurerm_key_vault_secret.certificate[certificates.certificate_name].versionless_id
