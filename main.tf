@@ -257,8 +257,8 @@ resource "azurerm_application_gateway" "ag" {
         rule_sequence = "100"
 
         request_header_configuration {
-          header_name  = "X-ARR-ClientCert-AGW"
-          header_value = "{var_client_certificate}"
+          header_name  = "CLIENT-IP-AGW"
+          header_value = "{var_client_ip}"
         }
         request_header_configuration {
           header_name  = "X-ARR-ClientCertSub-AGW"
