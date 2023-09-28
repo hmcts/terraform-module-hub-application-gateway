@@ -261,21 +261,54 @@ resource "azurerm_application_gateway" "ag" {
     ]
     content {
       name = rewrite_rule_set.value.name
-      rewrite_rule {
-        name          = "ClientCertAddCustomHeaderRule"
-        rule_sequence = "100"
 
-        request_header_configuration {
-          header_name  = "CLIENT-IP-AGW"
-          header_value = "{var_client_ip}"
-        }
-        request_header_configuration {
-          header_name  = "X-ARR-ClientCertSub-AGW"
-          header_value = "{var_client_certificate_subject}"
-        }
-        request_header_configuration {
-          header_name  = "URI-PATH-AGW"
-          header_value = "{var_uri_path}"
+      dynamic "rewrite_rule" {
+        for_each = rewrite_rule_set.value.rewrite_rules
+
+        content {
+          name          = rewrite_rule.value.name
+          rule_sequence = rewrite_rule.value.sequence
+
+          dynamic "condition" {
+            for_each = rewrite_rule.value.conditions
+
+            content {
+              variable    = condition.value.variable
+              pattern     = condition.value.pattern
+              ignore_case = contains(keys(condition.value), "ignore_case") ? condition.value.ignore_case : false
+              negate      = contains(keys(condition.value), "negate") ? condition.value.negate : false
+            }
+          }
+
+          dynamic "request_header_configuration" {
+            for_each = rewrite_rule.value.request_headers
+
+            content {
+              header_name  = request_header_configuration.value.header_name
+              header_value = request_header_configuration.value.header_value
+            }
+          }
+
+          dynamic "url" {
+            for_each = rewrite_rule.value.url
+
+            content {
+              components   = contains(keys(url.value), "components") ? url.value.components : null
+              path         = contains(keys(url.value), "path") ? url.value.path : null
+              reroute      = contains(keys(url.value), "reroute") ? url.value.reroute : null
+              query_string = contains(keys(url.value), "query_string") ? url.value.query_string : null
+            }
+          }
+
+          dynamic "response_header_configuration" {
+            for_each = rewrite_rule.value.response_headers
+
+            content {
+              header_name  = response_header_configuration.value.header_name
+              header_value = response_header_configuration.value.header_value
+            }
+          }
+
         }
       }
     }
