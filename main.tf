@@ -256,7 +256,7 @@ resource "azurerm_application_gateway" "ag" {
   dynamic "rewrite_rule_set" {
     for_each = [for app in local.gateways[count.index].app_configuration.rewrite_rules : {
       name = "${app.name}-rewriterule"
-      rule_sequence = ${app.sequence}
+      rule_sequence = "${app.sequence}"
       }
     ]
     content {
