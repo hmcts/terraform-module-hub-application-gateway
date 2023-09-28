@@ -263,7 +263,7 @@ resource "azurerm_application_gateway" "ag" {
       name = rewrite_rule_set.value.name
 
       dynamic "rewrite_rule" {
-        for_each = rewrite_rule_set.value.rewrite_rules
+        for_each = {for rewriteRuleKey, rewriteRuleValue in local.gateways[count.index].app_configuration.rewrite_rules : rewriteRuleKey => rewriteRuleValue}
 
         content {
           name          = rewrite_rule.value.name
