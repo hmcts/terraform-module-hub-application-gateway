@@ -254,28 +254,46 @@ resource "azurerm_application_gateway" "ag" {
   }
 
   dynamic "rewrite_rule_set" {
-    for_each = [for app in local.gateways[count.index].app_configuration : {
-      name = "${app.product}-${app.component}-rewriterule"
+    for_each = [for rewrite_rule in local.gateways[count.index].app_configuration.rewrite_rules : {
+      name = "${rewrite_rule.name}-rewriterule"
       }
-      if lookup(app, "add_rewrite_rule", false) == true
     ]
     content {
       name = rewrite_rule_set.value.name
-      rewrite_rule {
-        name          = "ClientCertAddCustomHeaderRule"
-        rule_sequence = "100"
 
-        request_header_configuration {
-          header_name  = "CLIENT-IP-AGW"
-          header_value = "{var_client_ip}"
-        }
-        request_header_configuration {
-          header_name  = "X-ARR-ClientCertSub-AGW"
-          header_value = "{var_client_certificate_subject}"
-        }
-        request_header_configuration {
-          header_name  = "URI-PATH-AGW"
-          header_value = "{var_uri_path}"
+      dynamic "rewrite_rule" {
+        for_each = rewrite_rule_set.value.rewrite_rules
+        iterator = rewrite_rule
+        content {
+          name          = rewrite_rule.value.name
+          rule_sequence = rewrite_rule.value.sequence
+
+          dynamic "condition" {
+            for_each = rulrewrite_rule.value.conditions
+            iterator = cond
+            content {
+              variable = cond.value.variable
+              pattern  = cond.value.pattern
+            }
+          }
+
+          dynamic "request_header_configuration" {
+            for_each = rewrite_rule.value.request_headers
+            iterator = header
+            content {
+              header_name  = header.value.header_name
+              header_value = header.value.header_value
+            }
+          }
+
+          dynamic "url" {
+            for_each = rewrite_rule.value.rewrite_rule
+            iterator = url
+            content {
+              path = url.value.rewrite_rule.path
+              components = url.value.rewrite_rule.components
+            }
+          }
         }
       }
     }
