@@ -254,31 +254,24 @@ resource "azurerm_application_gateway" "ag" {
   }
 
   dynamic "rewrite_rule_set" {
-    for_each = [for rewrite_rule in local.gateways[count.index].app_configuration.rewrite_rules : {
-      name = "${rewrite_rule.name}-rewriterule"
+    for_each = [for app in local.gateways[count.index].app_configuration.rewrite_rules : {
+      name = "${app.name}-rewriterule"
+      rule_sequence = ${app.rule_sequence}
       }
     ]
     content {
       name = rewrite_rule_set.value.name
+      rule_sequence = rewrite_rule_set.value.rule_sequence
 
       dynamic "rewrite_rule" {
         for_each = rewrite_rule_set.value.rewrite_rules
-        iterator = rewrite_rule
+        iterator = rule
         content {
-          name          = rewrite_rule.value.name
-          rule_sequence = rewrite_rule.value.sequence
-
-          dynamic "condition" {
-            for_each = rulrewrite_rule.value.conditions
-            iterator = cond
-            content {
-              variable = cond.value.variable
-              pattern  = cond.value.pattern
-            }
-          }
+          name          = rule.value.name
+          rule_sequence = rule.value.rule_sequence
 
           dynamic "request_header_configuration" {
-            for_each = rewrite_rule.value.request_headers
+            for_each = rule.value.request_headers
             iterator = header
             content {
               header_name  = header.value.header_name
@@ -286,14 +279,6 @@ resource "azurerm_application_gateway" "ag" {
             }
           }
 
-          dynamic "url" {
-            for_each = rewrite_rule.value.rewrite_rule
-            iterator = url
-            content {
-              path = url.value.rewrite_rule.path
-              components = url.value.rewrite_rule.components
-            }
-          }
         }
       }
     }
