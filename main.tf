@@ -256,6 +256,7 @@ resource "azurerm_application_gateway" "ag" {
   dynamic "rewrite_rule_set" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name = "${app.product}-${app.component}-rewriterule"
+      rewrite_rules = "${app.rewrite_rules}"
       }
       if lookup(app, "add_rewrite_rule", false) == true
     ]
@@ -263,7 +264,7 @@ resource "azurerm_application_gateway" "ag" {
       name = rewrite_rule_set.value.name
 
       dynamic "rewrite_rule" {
-        for_each = {for rewriteRuleKey, rewriteRuleValue in local.gateways[count.index].app_configuration.rewrite_rules : rewriteRuleKey => rewriteRuleValue}
+        for_each = rewrite_rule_set.value.rewrite_rules
 
         content {
           name          = rewrite_rule.value.name
