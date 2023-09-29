@@ -269,7 +269,7 @@ resource "azurerm_application_gateway" "ag" {
           sequence         = "${rule.sequence}"
           conditions       = lookup(rule, "conditions", [])
           request_headers  = lookup(rule, "request_headers", [])
-          url              = lookup(rule, "url", {})
+          url              = contains(keys(rule), "url") ? [rule.url] : []
           response_headers = lookup(rule, "response_headers", [])
         }]
 
@@ -305,11 +305,20 @@ resource "azurerm_application_gateway" "ag" {
             }
           }
 
-          url {
-            components   = lookup(rewrite_rule.value.url, "components", null)
-            path         = lookup(rewrite_rule.value.url, "path", null)
-            reroute      = lookup(rewrite_rule.value.url, "reroute", null)
-            query_string = lookup(rewrite_rule.value.url, "query_string", null)
+          dynamic "url" {
+            for_each = [for the_url in rewrite_rule.value.url : {
+              components   = lookup(the_url, "components", null)
+              path         = lookup(the_url, "path", null)
+              reroute      = lookup(the_url, "reroute", false)
+              query_string = lookup(the_url, "query_string", null)
+            }]
+
+            content {
+              components   = url.value.components
+              path         = url.value.path
+              reroute      = url.value.reroute
+              query_string = url.value.query_string
+            }
           }
 
           dynamic "response_header_configuration" {
