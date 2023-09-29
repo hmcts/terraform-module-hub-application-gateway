@@ -307,10 +307,10 @@ resource "azurerm_application_gateway" "ag" {
 
           dynamic "url" {
             for_each = [for url in rewrite_rule.value.url : {
-              components   = lookup(url, "components", null)
-              path         = lookup(url, "path", null)
-              reroute      = lookup(url, "reroute", null)
-              query_string = lookup(url, "query_string", null)
+              components   = "${url.components}"
+              path         = "${url.path}"
+              reroute      = "${url.reroute}"
+              query_string = "${url.query_string}"
             }]
 
             content {
