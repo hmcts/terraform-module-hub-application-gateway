@@ -264,7 +264,10 @@ resource "azurerm_application_gateway" "ag" {
       name = rewrite_rule_set.value.name
 
       dynamic "rewrite_rule" {
-        for_each = rewrite_rule_set.value.rewrite_rules
+        for_each = [for rule in rewrite_rule_set.value.rewrite_rules : {
+          name = "${rule.name}"
+          sequence = "${rule.sequence}"
+        }]
 
         content {
           name          = rewrite_rule.value.name
