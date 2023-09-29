@@ -269,7 +269,7 @@ resource "azurerm_application_gateway" "ag" {
           sequence         = "${rule.sequence}"
           conditions       = lookup(rule, "conditions", [])
           request_headers  = lookup(rule, "request_headers", [])
-          url              = lookup(rule, "url", [])
+          url              = lookup(rule, "url", {})
           response_headers = lookup(rule, "response_headers", [])
         }]
 
@@ -309,7 +309,7 @@ resource "azurerm_application_gateway" "ag" {
             for_each = [for url in rewrite_rule.value.url : {
               components   = lookup(url, "components", null)
               path         = lookup(url, "path", null)
-              reroute      = loopup(url, "reroute", null)
+              reroute      = lookup(url, "reroute", null)
               query_string = lookup(url, "query_string", null)
             }]
 
