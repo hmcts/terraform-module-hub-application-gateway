@@ -305,20 +305,11 @@ resource "azurerm_application_gateway" "ag" {
             }
           }
 
-          dynamic "url" {
-            for_each = [for url in rewrite_rule.value.url : {
-              components   = "${url.components}"
-              path         = "${url.path}"
-              reroute      = "${url.reroute}"
-              query_string = "${url.query_string}"
-            }]
-
-            content {
-              components   = url.value.components
-              path         = url.value.path
-              reroute      = url.value.reroute
-              query_string = url.value.query_string
-            }
+          url {
+            components   = lookup(rewrite_rule.value.url, "components", null)
+            path         = lookup(rewrite_rule.value.url, "path", null)
+            reroute      = lookup(rewrite_rule.value.url, "reroute", null)
+            query_string = lookup(rewrite_rule.value.url, "query_string", null)
           }
 
           dynamic "response_header_configuration" {
