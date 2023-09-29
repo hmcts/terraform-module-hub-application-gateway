@@ -13,25 +13,21 @@ gateways:
         health_path_override: "/health/liveness"
         add_rewrite_rule: true
         rewrite_rules:
-          - rewrite_rule:
-              name: "ExampleRewriteRule"
-              sequence: "100"
-              conditions:
-                - condition:
-                    variable: "uri_path"
-                    pattern: ".*article/(.*)/(.*)"
-                    ignore_case: true
-                    negate: false
-              request_headers:
-                - request_header:
-                    header_name: "customHeaderName"
-                    header_value: "{var_client_ip}"
-              url:
-                components: "path_only, query_string_only or exclude property entirely for both"
-                path: "/article.aspx"
-                reroute: false
-                query_string: "d={var_uri_path_1}&title={var_uri_path_2}"
-              response_headers:
-                - response_header:
-                    header_name: "http_resp_location"
-                    header_value: "someValue"
+          - name: "ExampleRewriteRule"
+            sequence: "100"
+            conditions:
+              - variable: "uri_path"
+                pattern: ".*article/(.*)/(.*)"
+                ignore_case: true
+                negate: false
+            request_headers:
+              - header_name: "customHeaderName"
+                header_value: "{var_client_ip}"
+            url:
+              components: "path_only, query_string_only or exclude property entirely for both"
+              path: "/article.aspx"
+              reroute: false
+              query_string: "d={var_uri_path_1}&title={var_uri_path_2}"
+            response_headers:
+              - header_name: "http_resp_location"
+                header_value: "someValue"

@@ -255,7 +255,7 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "rewrite_rule_set" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
-      name = "${app.product}-${app.component}-rewriterule"
+      name          = "${app.product}-${app.component}-rewriterule"
       rewrite_rules = "${app.rewrite_rules}"
       }
       if lookup(app, "add_rewrite_rule", false) == true
@@ -265,8 +265,12 @@ resource "azurerm_application_gateway" "ag" {
 
       dynamic "rewrite_rule" {
         for_each = [for rule in rewrite_rule_set.value.rewrite_rules : {
-          name = "${rule.name}"
-          sequence = "${rule.sequence}"
+          name             = "${rule.name}"
+          sequence         = "${rule.sequence}"
+          conditions       = lookup(rule, "conditions", [])
+          request_headers  = lookup(rule, "request_headers", [])
+          url              = lookup(rule, "url", [])
+          response_headers = lookup(rule, "response_headers", [])
         }]
 
         content {
@@ -274,18 +278,26 @@ resource "azurerm_application_gateway" "ag" {
           rule_sequence = rewrite_rule.value.sequence
 
           dynamic "condition" {
-            for_each = rewrite_rule.value.conditions
+            for_each = [for cond in rewrite_rule.value.conditions : {
+              variable    = "${cond.variable}"
+              pattern     = "${cond.pattern}"
+              ignore_case = lookup(cond, "ignore_case", false)
+              negate      = lookup(cond, "negate", false)
+            }]
 
             content {
               variable    = condition.value.variable
               pattern     = condition.value.pattern
-              ignore_case = contains(keys(condition.value), "ignore_case") ? condition.value.ignore_case : false
-              negate      = contains(keys(condition.value), "negate") ? condition.value.negate : false
+              ignore_case = condition.value.ignore_case
+              negate      = condition.value.negate
             }
           }
 
           dynamic "request_header_configuration" {
-            for_each = rewrite_rule.value.request_headers
+            for_each = [for request_header in rewrite_rule.value.request_headers : {
+              header_name  = "${request_header.header_name}"
+              header_value = "${request_header.header_value}"
+            }]
 
             content {
               header_name  = request_header_configuration.value.header_name
@@ -294,18 +306,26 @@ resource "azurerm_application_gateway" "ag" {
           }
 
           dynamic "url" {
-            for_each = rewrite_rule.value.url
+            for_each = [for url in rewrite_rule.value.url : {
+              components   = lookup(url, "components", null)
+              path         = lookup(url, "path", null)
+              reroute      = loopup(url, "reroute", null)
+              query_string = lookup(url, "query_string", null)
+            }]
 
             content {
-              components   = contains(keys(url.value), "components") ? url.value.components : null
-              path         = contains(keys(url.value), "path") ? url.value.path : null
-              reroute      = contains(keys(url.value), "reroute") ? url.value.reroute : null
-              query_string = contains(keys(url.value), "query_string") ? url.value.query_string : null
+              components   = url.value.components
+              path         = url.value.path
+              reroute      = url.value.reroute
+              query_string = url.value.query_string
             }
           }
 
           dynamic "response_header_configuration" {
-            for_each = rewrite_rule.value.response_headers
+            for_each = [for response_header in rewrite_rule.value.response_headers : {
+              header_name  = "${response_header.header_name}"
+              header_value = "${response_header.header_value}"
+            }]
 
             content {
               header_name  = response_header_configuration.value.header_name
