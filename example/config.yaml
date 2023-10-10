@@ -16,7 +16,7 @@ gateways:
           - name: "ExampleRewriteRule"
             sequence: "100"
             conditions:
-              - variable: "uri_path"
+              - variable: "var_uri_path"
                 pattern: ".*article/(.*)/(.*)"
                 ignore_case: true
                 negate: false

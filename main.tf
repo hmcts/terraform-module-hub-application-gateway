@@ -281,14 +281,14 @@ resource "azurerm_application_gateway" "ag" {
             for_each = [for cond in rewrite_rule.value.conditions : {
               variable    = "${cond.variable}"
               pattern     = "${cond.pattern}"
-              ignore_case = lookup(cond, "ignore_case", false)
+              #ignore_case = lookup(cond, "ignore_case", false)
               negate      = lookup(cond, "negate", false)
             }]
 
             content {
               variable    = condition.value.variable
               pattern     = condition.value.pattern
-              ignore_case = condition.value.ignore_case
+              #ignore_case = condition.value.ignore_case
               negate      = condition.value.negate
             }
           }
