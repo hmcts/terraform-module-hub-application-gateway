@@ -1,16 +1,19 @@
 gateways:
   - gateway_configuration:
-      host_name_suffix: sandbox.platform.hmcts.net
-      ssl_host_name_suffix: sandbox.platform.hmcts.net
-      certificate_name: wildcard-sandbox-platform-hmcts-net
       exclude_env_in_app_name: true
       private_ip_address: 10.2.13.122
+      ssl_certificates:
+        - certificate_name: wildcard-sandbox-platform-hmcts-net
     app_configuration:
       - product: api
         component: service
         ssl_enabled: true
         use_public_ip: true
         health_path_override: "/health/liveness"
+        host_name_suffix: sandbox.platform.hmcts.net
+        ssl_host_name_suffix: sandbox.platform.hmcts.net
+        ssl_certificate_name: wildcard-sandbox-platform-hmcts-net
+        rootca_certificate_name: lets_encrypt
         add_rewrite_rule: true
         rewrite_rules:
           - name: "ExampleRewriteRule"
