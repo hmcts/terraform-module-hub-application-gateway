@@ -80,9 +80,9 @@ resource "azurerm_application_gateway" "ag" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name                    = "${app.product}-${app.component}"
       path                    = lookup(app, "health_path_override", "/health/liveness")
-      host_name_include_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}-${var.env}"), local.gateways[count.index].gateway_configuration.host_name_suffix])
-      host_name_exclude_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), local.gateways[count.index].gateway_configuration.host_name_suffix])
-      ssl_host_name           = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), local.gateways[count.index].gateway_configuration.ssl_host_name_suffix])
+      host_name_include_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}-${var.env}"), app.host_name_suffix])
+      host_name_exclude_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.host_name_suffix])
+      ssl_host_name           = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"),  app.ssl_host_name_suffix])
       ssl_enabled             = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
       exclude_env_in_app_name = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
     }]
@@ -119,20 +119,28 @@ resource "azurerm_application_gateway" "ag" {
     type         = "UserAssigned"
   }
 
-  ssl_certificate {
-    name                = local.gateways[count.index].gateway_configuration.certificate_name
-    key_vault_secret_id = data.azurerm_key_vault_secret.certificate[count.index].versionless_id
+  dynamic "ssl_certificate" {
+    for_each = [for certificates in local.gateways[count.index].ssl_certificates : {
+      name                = "${certificates.certificate_name}"
+      key_vault_secret_id = data.azurerm_key_vault_secret.certificate[certificates.certificate_name].versionless_id
+    }]
+    content {
+
+      name                = ssl_certificate.value.name
+      key_vault_secret_id = ssl_certificate.value.key_vault_secret_id
+    }
+
   }
 
   dynamic "http_listener" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name                    = "${app.product}-${app.component}"
-      host_name_include_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}-${var.env}"), local.gateways[count.index].gateway_configuration.host_name_suffix])
-      host_name_exclude_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), local.gateways[count.index].gateway_configuration.host_name_suffix])
+      host_name_include_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}-${var.env}"), app.host_name_suffix])
+      host_name_exclude_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.host_name_suffix])
       frontend_ip_name        = contains(keys(app), "use_public_ip") ? "appGwPublicFrontendIp" : "appGwPrivateFrontendIp"
-      ssl_host_name           = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), local.gateways[count.index].gateway_configuration.ssl_host_name_suffix])
+      ssl_host_name           = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.ssl_host_name_suffix])
       ssl_enabled             = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
-      ssl_certificate_name    = local.gateways[count.index].gateway_configuration.certificate_name
+      ssl_certificate_name    = app.ssl_certificate_name
       exclude_env_in_app_name = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
       ssl_profile_name        = lookup(app, "add_ssl_profile", false) == true ? "${app.product}-${app.component}-sslprofile" : ""
     }]
@@ -151,7 +159,7 @@ resource "azurerm_application_gateway" "ag" {
   dynamic "http_listener" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name             = "${app.product}-${app.component}-redirect"
-      host_name        = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), local.gateways[count.index].gateway_configuration.ssl_host_name_suffix])
+      host_name        = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.ssl_host_name_suffix])
       frontend_ip_name = contains(keys(app), "use_public_ip") ? "appGwPublicFrontendIp" : "appGwPrivateFrontendIp"
       }
       if lookup(app, "http_to_https_redirect", false) == true
@@ -220,12 +228,13 @@ resource "azurerm_application_gateway" "ag" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name                         = "${app.product}-${app.component}-trusted-cert"
       verify_client_cert_issuer_dn = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
+      data                         = contains(keys(app), "rootca_certificate_name") ? var.trusted_client_certificate_data[app.rootca_certificate_name].path : false
       }
       if lookup(app, "add_ssl_profile", false) == true
     ]
     content {
       name = trusted_client_certificate.value.name
-      data = var.trusted_client_certificate_data
+      data = trusted_client_certificate.value.data
     }
   }
 
@@ -246,27 +255,84 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "rewrite_rule_set" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
-      name = "${app.product}-${app.component}-rewriterule"
+      name          = "${app.product}-${app.component}-rewriterule"
+      rewrite_rules = "${app.rewrite_rules}"
       }
       if lookup(app, "add_rewrite_rule", false) == true
     ]
     content {
       name = rewrite_rule_set.value.name
-      rewrite_rule {
-        name          = "ClientCertAddCustomHeaderRule"
-        rule_sequence = "100"
 
-        request_header_configuration {
-          header_name  = "CLIENT-IP-AGW"
-          header_value = "{var_client_ip}"
-        }
-        request_header_configuration {
-          header_name  = "X-ARR-ClientCertSub-AGW"
-          header_value = "{var_client_certificate_subject}"
-        }
-        request_header_configuration {
-          header_name  = "URI-PATH-AGW"
-          header_value = "{var_uri_path}"
+      dynamic "rewrite_rule" {
+        for_each = [for rule in rewrite_rule_set.value.rewrite_rules : {
+          name             = "${rule.name}"
+          sequence         = "${rule.sequence}"
+          conditions       = lookup(rule, "conditions", [])
+          request_headers  = lookup(rule, "request_headers", [])
+          url              = contains(keys(rule), "url") ? [rule.url] : []
+          response_headers = lookup(rule, "response_headers", [])
+        }]
+
+        content {
+          name          = rewrite_rule.value.name
+          rule_sequence = rewrite_rule.value.sequence
+
+          dynamic "condition" {
+            for_each = [for cond in rewrite_rule.value.conditions : {
+              variable    = "${cond.variable}"
+              pattern     = "${cond.pattern}"
+              ignore_case = lookup(cond, "ignore_case", false)
+              negate      = lookup(cond, "negate", false)
+            }]
+
+            content {
+              variable    = condition.value.variable
+              pattern     = condition.value.pattern
+              ignore_case = condition.value.ignore_case
+              negate      = condition.value.negate
+            }
+          }
+
+          dynamic "request_header_configuration" {
+            for_each = [for request_header in rewrite_rule.value.request_headers : {
+              header_name  = "${request_header.header_name}"
+              header_value = "${request_header.header_value}"
+            }]
+
+            content {
+              header_name  = request_header_configuration.value.header_name
+              header_value = request_header_configuration.value.header_value
+            }
+          }
+
+          dynamic "url" {
+            for_each = [for the_url in rewrite_rule.value.url : {
+              components   = lookup(the_url, "components", null)
+              path         = lookup(the_url, "path", null)
+              reroute      = lookup(the_url, "reroute", false)
+              query_string = lookup(the_url, "query_string", null)
+            }]
+
+            content {
+              components   = url.value.components
+              path         = url.value.path
+              reroute      = url.value.reroute
+              query_string = url.value.query_string
+            }
+          }
+
+          dynamic "response_header_configuration" {
+            for_each = [for response_header in rewrite_rule.value.response_headers : {
+              header_name  = "${response_header.header_name}"
+              header_value = "${response_header.header_value}"
+            }]
+
+            content {
+              header_name  = response_header_configuration.value.header_name
+              header_value = response_header_configuration.value.header_value
+            }
+          }
+
         }
       }
     }

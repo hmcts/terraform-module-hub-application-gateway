@@ -102,8 +102,4 @@ variable "exclusions" {
   default = []
 }
 
-variable "trusted_client_certificate_data" {
-  type        = string
-  default     = null
-  description = "This variable will allow to send trusted client certificate data as string"
-}
+variable "trusted_client_certificate_data" {}

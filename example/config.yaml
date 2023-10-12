@@ -1,14 +1,36 @@
 gateways:
   - gateway_configuration:
-      host_name_suffix: sandbox.platform.hmcts.net
-      ssl_host_name_suffix: sandbox.platform.hmcts.net
-      certificate_name: wildcard-sandbox-platform-hmcts-net
       exclude_env_in_app_name: true
       private_ip_address: 10.2.13.122
+      ssl_certificates:
+        - certificate_name: wildcard-sandbox-platform-hmcts-net
     app_configuration:
       - product: api
         component: service
         ssl_enabled: true
         use_public_ip: true
         health_path_override: "/health/liveness"
-
+        host_name_suffix: sandbox.platform.hmcts.net
+        ssl_host_name_suffix: sandbox.platform.hmcts.net
+        ssl_certificate_name: wildcard-sandbox-platform-hmcts-net
+        rootca_certificate_name: lets_encrypt
+        add_rewrite_rule: true
+        rewrite_rules:
+          - name: "ExampleRewriteRule"
+            sequence: "100"
+            conditions:
+              - variable: "var_uri_path"
+                pattern: ".*article/(.*)/(.*)"
+                ignore_case: true
+                negate: false
+            request_headers:
+              - header_name: "customHeaderName"
+                header_value: "{var_client_ip}"
+            url:
+              components: "path_only, query_string_only or exclude property entirely for both"
+              path: "/article.aspx"
+              reroute: false
+              query_string: "d={var_uri_path_1}&title={var_uri_path_2}"
+            response_headers:
+              - header_name: "http_resp_location"
+                header_value: "someValue"
