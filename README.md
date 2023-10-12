@@ -51,9 +51,11 @@ In order to add client authentication support for the Application gateway, you h
 | <a name="input_max_capacity"></a> [max\_capacity](#input\_max\_capacity) | n/a | `number` | `10` | no |
 | <a name="input_min_capacity"></a> [min\_capacity](#input\_min\_capacity) | n/a | `number` | `2` | no |
 | <a name="input_private_ip_address"></a> [private\_ip\_address](#input\_private\_ip\_address) | IP address to allocate staticly to app gateway, must be in the subnet for the env | `any` | n/a | yes |
+| <a name="imput_public_ip_enable_multiple_availability_zones"></a> [public\_ip\_enable\_multiple\_availability\_zones](#input\_public\_ip\_enable\_multiple\_availability\_zones) | Whether or not the public IP should be enabled in multiple availability zones | `bool` | `false` | no |
 | <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name) | name of the SKU to use for Application Gateway | `string` | `"WAF_v2"` | no |
 | <a name="input_sku_tier"></a> [sku\_tier](#input\_sku\_tier) | tier of the SKU to use for Application Gateway | `string` | `"WAF_v2"` | no |
 | <a name="input_subnet_name"></a> [subnet\_name](#input\_subnet\_name) | Name of the subnet | `string` | `"aks-appgw"` | no |
+| <a name="input_trusted_client_certificate_data"></a> [trusted\_client\_certificate\_data](#input\_trusted\_client\_certificate\_data) | The certificates that will be used to authenticate client certificates.  Each entry is a map where the key is a name for the certificate and the value is the content of the certificate. | `map(map(string))` | n/a | yes |
 | <a name="input_usage_name"></a> [usage\_name](#input\_usage\_name) | describes usage of app gateway, for use in naming resources | `string` | `"aks"` | no |
 | <a name="input_vault_name"></a> [vault\_name](#input\_vault\_name) | vault name | `any` | n/a | yes |
 | <a name="input_vnet_name"></a> [vnet\_name](#input\_vnet\_name) | Name of the Virtual Network | `string` | n/a | yes |
