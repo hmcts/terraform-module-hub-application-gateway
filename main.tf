@@ -103,7 +103,7 @@ resource "azurerm_application_gateway" "ag" {
       name                                = "${app.product}-${app.component}"
       cookie_based_affinity               = contains(keys(app), "cookie_based_affinity") ? app.cookie_based_affinity : "Disabled"
       pick_host_name_from_backend_address = contains(keys(app), "pick_host_name_from_backend_address") ? app.pick_host_name_from_backend_address : false
-      backend_host_name_override          = contains(keys(app), "backend_host_name_override") ? app.backend_host_name_override : ""
+      backend_host_name_override          = contains(keys(app), "backend_host_name_override") ? app.backend_host_name_override : null
     }]
 
     content {
@@ -114,7 +114,7 @@ resource "azurerm_application_gateway" "ag" {
       protocol                            = "Http"
       request_timeout                     = 30
       pick_host_name_from_backend_address = backend_http_settings.value.pick_host_name_from_backend_address
-      host_name                           = backend_http_settings.value.pick_host_name_from_backend_address == false ? backend_http_settings.value.backend_host_name_override : ""
+      host_name                           = backend_http_settings.value.pick_host_name_from_backend_address == false ? backend_http_settings.value.backend_host_name_override : null
     }
   }
 
