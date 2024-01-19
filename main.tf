@@ -164,7 +164,7 @@ resource "azurerm_application_gateway" "ag" {
   dynamic "http_listener" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name             = "${app.product}-${app.component}-redirect"
-      host_name        = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.ssl_host_name_suffix])
+      host_name        = join(".", [lookup(app, "listener_host_name_prefix", "${app.product}-${app.component}"), app.listener_ssl_host_name_suffix])
       frontend_ip_name = contains(keys(app), "use_public_ip") ? "appGwPublicFrontendIp" : "appGwPrivateFrontendIp"
       }
       if lookup(app, "http_to_https_redirect", false) == true
