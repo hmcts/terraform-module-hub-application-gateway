@@ -78,7 +78,7 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "probe" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
-      name                    = "${app.product}-${app.component}"
+      name                    = "${app.product}-${app.component}-probe"
       path                    = lookup(app, "health_path_override", "/health/liveness")
       host_name_include_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}-${var.env}"), app.host_name_suffix])
       host_name_exclude_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.host_name_suffix])
@@ -101,6 +101,7 @@ resource "azurerm_application_gateway" "ag" {
   dynamic "backend_http_settings" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name                                = "${app.product}-${app.component}"
+      probe_name                          = "${app.product}-${app.component}-probe"
       cookie_based_affinity               = contains(keys(app), "cookie_based_affinity") ? app.cookie_based_affinity : "Disabled"
       pick_host_name_from_backend_address = contains(keys(app), "pick_host_name_from_backend_address") ? app.pick_host_name_from_backend_address : false
       backend_host_name_override          = contains(keys(app), "backend_host_name_override") ? app.backend_host_name_override : null
@@ -108,7 +109,7 @@ resource "azurerm_application_gateway" "ag" {
 
     content {
       name                                = backend_http_settings.value.name
-      probe_name                          = backend_http_settings.value.name
+      probe_name                          = backend_http_settings.value.probe_name
       cookie_based_affinity               = backend_http_settings.value.cookie_based_affinity
       port                                = 80
       protocol                            = "Http"
