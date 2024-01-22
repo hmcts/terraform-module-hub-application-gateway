@@ -66,7 +66,7 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "backend_address_pool" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
-      name = "${app.product}-${app.component}"
+      name = "${app.product}-${app.component}-address-pool"
     }]
 
     content {
@@ -100,7 +100,7 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "backend_http_settings" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
-      name                                = "${app.product}-${app.component}"
+      name                                = "${app.product}-${app.component}-http-settings"
       probe_name                          = "${app.product}-${app.component}-probe"
       cookie_based_affinity               = contains(keys(app), "cookie_based_affinity") ? app.cookie_based_affinity : "Disabled"
       pick_host_name_from_backend_address = contains(keys(app), "pick_host_name_from_backend_address") ? app.pick_host_name_from_backend_address : false
@@ -198,9 +198,12 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "request_routing_rule" {
     for_each = [for i, app in local.gateways[count.index].app_configuration : {
-      name             = "${app.product}-${app.component}"
-      priority         = ((i + 1) * 10)
-      add_rewrite_rule = contains(keys(app), "add_rewrite_rule") ? app.add_rewrite_rule : false
+      name               = "${app.product}-${app.component}"
+      address_pool_name  = "${app.product}-${app.component}-address-pool"
+      http_settings_name = "${app.product}-${app.component}-http-settings"
+      rewrite_rule_name  = "${app.product}-${app.component}-rewriterule"
+      priority           = ((i + 1) * 10)
+      add_rewrite_rule   = contains(keys(app), "add_rewrite_rule") ? app.add_rewrite_rule : false
     }]
 
     content {
@@ -208,9 +211,9 @@ resource "azurerm_application_gateway" "ag" {
       priority                   = request_routing_rule.value.priority
       rule_type                  = "Basic"
       http_listener_name         = request_routing_rule.value.name
-      backend_address_pool_name  = request_routing_rule.value.name
-      backend_http_settings_name = request_routing_rule.value.name
-      rewrite_rule_set_name      = request_routing_rule.value.add_rewrite_rule ? "${request_routing_rule.value.name}-rewriterule" : null
+      backend_address_pool_name  = request_routing_rule.value.address_pool_name
+      backend_http_settings_name = request_routing_rule.value.http_settings_name
+      rewrite_rule_set_name      = request_routing_rule.value.add_rewrite_rule ? request_routing_rule.value.rewrite_rule_name : null
     }
   }
 
