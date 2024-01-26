@@ -66,7 +66,7 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "backend_address_pool" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
-      name = "${app.product}-${app.component}"
+      name = "${app.product}-${app.component}-address-pool"
     }]
 
     content {
@@ -78,7 +78,7 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "probe" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
-      name                    = "${app.product}-${app.component}"
+      name                    = "${app.product}-${app.component}-probe"
       path                    = lookup(app, "health_path_override", "/health/liveness")
       host_name_include_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}-${var.env}"), app.host_name_suffix])
       host_name_exclude_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.host_name_suffix])
@@ -100,17 +100,22 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "backend_http_settings" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
-      name                  = "${app.product}-${app.component}"
-      cookie_based_affinity = contains(keys(app), "cookie_based_affinity") ? app.cookie_based_affinity : "Disabled"
+      name                                = "${app.product}-${app.component}-http-settings"
+      probe_name                          = "${app.product}-${app.component}-probe"
+      cookie_based_affinity               = contains(keys(app), "cookie_based_affinity") ? app.cookie_based_affinity : "Disabled"
+      pick_host_name_from_backend_address = contains(keys(app), "pick_host_name_from_backend_address") ? app.pick_host_name_from_backend_address : false
+      backend_host_name_override          = contains(keys(app), "backend_host_name_override") ? app.backend_host_name_override : null
     }]
 
     content {
-      name                  = backend_http_settings.value.name
-      probe_name            = backend_http_settings.value.name
-      cookie_based_affinity = backend_http_settings.value.cookie_based_affinity
-      port                  = 80
-      protocol              = "Http"
-      request_timeout       = 30
+      name                                = backend_http_settings.value.name
+      probe_name                          = backend_http_settings.value.probe_name
+      cookie_based_affinity               = backend_http_settings.value.cookie_based_affinity
+      port                                = 80
+      protocol                            = "Http"
+      request_timeout                     = 30
+      pick_host_name_from_backend_address = backend_http_settings.value.pick_host_name_from_backend_address
+      host_name                           = backend_http_settings.value.pick_host_name_from_backend_address == false ? backend_http_settings.value.backend_host_name_override : null
     }
   }
 
@@ -134,15 +139,15 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "http_listener" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
-      name                    = "${app.product}-${app.component}"
-      host_name_include_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}-${var.env}"), app.host_name_suffix])
-      host_name_exclude_env   = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.host_name_suffix])
-      frontend_ip_name        = contains(keys(app), "use_public_ip") ? "appGwPublicFrontendIp" : "appGwPrivateFrontendIp"
-      ssl_host_name           = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.ssl_host_name_suffix])
-      ssl_enabled             = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
-      ssl_certificate_name    = app.ssl_certificate_name
-      exclude_env_in_app_name = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
-      ssl_profile_name        = lookup(app, "add_ssl_profile", false) == true ? "${app.product}-${app.component}-sslprofile" : ""
+      name                           = "${app.product}-${app.component}"
+      listener_host_name_include_env = join(".", [lookup(app, "listener_host_name_prefix", "${app.product}-${app.component}-${var.env}"), app.listener_host_name_suffix])
+      listener_host_name_exclude_env = join(".", [lookup(app, "listener_host_name_prefix", "${app.product}-${app.component}"), app.listener_host_name_suffix])
+      frontend_ip_name               = contains(keys(app), "use_public_ip") ? "appGwPublicFrontendIp" : "appGwPrivateFrontendIp"
+      listener_ssl_host_name         = join(".", [lookup(app, "listener_host_name_prefix", "${app.product}-${app.component}"), app.listener_ssl_host_name_suffix])
+      ssl_enabled                    = contains(keys(app), "ssl_enabled") ? app.ssl_enabled : false
+      ssl_certificate_name           = app.ssl_certificate_name
+      exclude_env_in_app_name        = lookup(local.gateways[count.index].gateway_configuration, "exclude_env_in_app_name", false)
+      ssl_profile_name               = lookup(app, "add_ssl_profile", false) == true ? "${app.product}-${app.component}-sslprofile" : ""
     }]
 
     content {
@@ -150,7 +155,7 @@ resource "azurerm_application_gateway" "ag" {
       frontend_ip_configuration_name = http_listener.value.frontend_ip_name
       frontend_port_name             = http_listener.value.ssl_enabled ? "https" : "http"
       protocol                       = http_listener.value.ssl_enabled ? "Https" : "Http"
-      host_name                      = http_listener.value.ssl_enabled ? http_listener.value.ssl_host_name : http_listener.value.exclude_env_in_app_name ? http_listener.value.host_name_exclude_env : http_listener.value.host_name_include_env
+      host_name                      = http_listener.value.ssl_enabled ? http_listener.value.listener_ssl_host_name : http_listener.value.exclude_env_in_app_name ? http_listener.value.listener_host_name_exclude_env : http_listener.value.listener_host_name_include_env
       ssl_certificate_name           = http_listener.value.ssl_enabled ? http_listener.value.ssl_certificate_name : ""
       ssl_profile_name               = http_listener.value.ssl_profile_name
     }
@@ -159,7 +164,7 @@ resource "azurerm_application_gateway" "ag" {
   dynamic "http_listener" {
     for_each = [for app in local.gateways[count.index].app_configuration : {
       name             = "${app.product}-${app.component}-redirect"
-      host_name        = join(".", [lookup(app, "host_name_prefix", "${app.product}-${app.component}"), app.ssl_host_name_suffix])
+      host_name        = join(".", [lookup(app, "listener_host_name_prefix", "${app.product}-${app.component}"), app.listener_ssl_host_name_suffix])
       frontend_ip_name = contains(keys(app), "use_public_ip") ? "appGwPublicFrontendIp" : "appGwPrivateFrontendIp"
       }
       if lookup(app, "http_to_https_redirect", false) == true
@@ -193,9 +198,12 @@ resource "azurerm_application_gateway" "ag" {
 
   dynamic "request_routing_rule" {
     for_each = [for i, app in local.gateways[count.index].app_configuration : {
-      name             = "${app.product}-${app.component}"
-      priority         = ((i + 1) * 10)
-      add_rewrite_rule = contains(keys(app), "add_rewrite_rule") ? app.add_rewrite_rule : false
+      name               = "${app.product}-${app.component}"
+      address_pool_name  = "${app.product}-${app.component}-address-pool"
+      http_settings_name = "${app.product}-${app.component}-http-settings"
+      rewrite_rule_name  = "${app.product}-${app.component}-rewriterule"
+      priority           = ((i + 1) * 10)
+      add_rewrite_rule   = contains(keys(app), "add_rewrite_rule") ? app.add_rewrite_rule : false
     }]
 
     content {
@@ -203,9 +211,9 @@ resource "azurerm_application_gateway" "ag" {
       priority                   = request_routing_rule.value.priority
       rule_type                  = "Basic"
       http_listener_name         = request_routing_rule.value.name
-      backend_address_pool_name  = request_routing_rule.value.name
-      backend_http_settings_name = request_routing_rule.value.name
-      rewrite_rule_set_name      = request_routing_rule.value.add_rewrite_rule ? "${request_routing_rule.value.name}-rewriterule" : null
+      backend_address_pool_name  = request_routing_rule.value.address_pool_name
+      backend_http_settings_name = request_routing_rule.value.http_settings_name
+      rewrite_rule_set_name      = request_routing_rule.value.add_rewrite_rule ? request_routing_rule.value.rewrite_rule_name : null
     }
   }
 
