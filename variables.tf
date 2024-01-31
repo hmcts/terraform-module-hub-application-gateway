@@ -95,6 +95,7 @@ variable "enable_multiple_availability_zones" {
 }
 
 variable "public_ip_enable_multiple_availability_zones" {
+  description = "Whether or not the public IP should be enabled in multiple availability zones"
   default = false
 }
 
@@ -102,4 +103,6 @@ variable "exclusions" {
   default = []
 }
 
-variable "trusted_client_certificate_data" {}
+variable "trusted_client_certificate_data" {
+  description = "The certificates that will be used to authenticate client certificates. Each entry is a map where the key is a name for the certificate and the value is the content of the certificate."
+}
