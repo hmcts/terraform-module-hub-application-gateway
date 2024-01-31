@@ -1,6 +1,5 @@
 # terraform-module-apim-application-gateway
 <!-- BEGIN_TF_DOCS -->
-
 ## Requirements
 
 No requirements.
@@ -8,6 +7,7 @@ No requirements.
 # mTLS
 
 In order to add client authentication support for the Application gateway, you have to send this `add_ssl_profile` property `true` from the consuming repository.
+
 ## Providers
 
 | Name | Version |
@@ -16,6 +16,10 @@ In order to add client authentication support for the Application gateway, you h
 | <a name="provider_azurerm.hub"></a> [azurerm.hub](#provider\_azurerm.hub) | n/a |
 | <a name="provider_azurerm.kv"></a> [azurerm.kv](#provider\_azurerm.kv) | n/a |
 | <a name="provider_local"></a> [local](#provider\_local) | n/a |
+
+## Modules
+
+No modules.
 
 ## Resources
 
@@ -26,7 +30,6 @@ In order to add client authentication support for the Application gateway, you h
 | [azurerm_public_ip.app_gw](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
 | [azurerm_role_assignment.identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_user_assigned_identity.identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) | resource |
-| [null_resource.root_ca](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_key_vault.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_key_vault_secret.certificate](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -51,17 +54,19 @@ In order to add client authentication support for the Application gateway, you h
 | <a name="input_max_capacity"></a> [max\_capacity](#input\_max\_capacity) | n/a | `number` | `10` | no |
 | <a name="input_min_capacity"></a> [min\_capacity](#input\_min\_capacity) | n/a | `number` | `2` | no |
 | <a name="input_private_ip_address"></a> [private\_ip\_address](#input\_private\_ip\_address) | IP address to allocate staticly to app gateway, must be in the subnet for the env | `any` | n/a | yes |
-| <a name="imput_public_ip_enable_multiple_availability_zones"></a> [public\_ip\_enable\_multiple\_availability\_zones](#input\_public\_ip\_enable\_multiple\_availability\_zones) | Whether or not the public IP should be enabled in multiple availability zones | `bool` | `false` | no |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | name of the project, for use in naming resources | `string` | `"cft"` | no |
+| <a name="input_public_ip_enable_multiple_availability_zones"></a> [public\_ip\_enable\_multiple\_availability\_zones](#input\_public\_ip\_enable\_multiple\_availability\_zones) | n/a | `bool` | `false` | no |
 | <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name) | name of the SKU to use for Application Gateway | `string` | `"WAF_v2"` | no |
 | <a name="input_sku_tier"></a> [sku\_tier](#input\_sku\_tier) | tier of the SKU to use for Application Gateway | `string` | `"WAF_v2"` | no |
 | <a name="input_subnet_name"></a> [subnet\_name](#input\_subnet\_name) | Name of the subnet | `string` | `"aks-appgw"` | no |
-| <a name="input_trusted_client_certificate_data"></a> [trusted\_client\_certificate\_data](#input\_trusted\_client\_certificate\_data) | The certificates that will be used to authenticate client certificates.  Each entry is a map where the key is a name for the certificate and the value is the content of the certificate. | `map(map(string))` | n/a | yes |
-| <a name="input_usage_name"></a> [usage\_name](#input\_usage\_name) | describes usage of app gateway, for use in naming resources | `string` | `"aks"` | no |
+| <a name="input_trusted_client_certificate_data"></a> [trusted\_client\_certificate\_data](#input\_trusted\_client\_certificate\_data) | n/a | `any` | n/a | yes |
+| <a name="input_usage_name"></a> [usage\_name](#input\_usage\_name) | describes usage of app gateway, for use in naming resources | `string` | `"apim"` | no |
 | <a name="input_vault_name"></a> [vault\_name](#input\_vault\_name) | vault name | `any` | n/a | yes |
 | <a name="input_vnet_name"></a> [vnet\_name](#input\_vnet\_name) | Name of the Virtual Network | `string` | n/a | yes |
 | <a name="input_vnet_rg"></a> [vnet\_rg](#input\_vnet\_rg) | Name of the virtual Network resource group | `string` | n/a | yes |
 | <a name="input_waf_mode"></a> [waf\_mode](#input\_waf\_mode) | Mode for waf to run in | `string` | `"Detection"` | no |
 | <a name="input_yaml_path"></a> [yaml\_path](#input\_yaml\_path) | path to yaml config file | `any` | n/a | yes |
+
 ## Outputs
 
 No outputs.
