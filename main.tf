@@ -244,12 +244,12 @@ resource "azurerm_application_gateway" "ag" {
   dynamic "trusted_client_certificate" {
     for_each = flatten([
     for app in local.gateways[count.index].app_configuration : [
-      for cert in (contains(keys(app), "ssl_profile_certificates") ? app.ssl_profile_certificates : []) : {
+      for cert in (contains(keys(app), "rootca_certificates") ? app.rootca_certificates : []) : {
       name                         = "${app.product}-${app.component}-${cert.rootca_certificate_name}"
       verify_client_cert_issuer_dn = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
       data                         = contains(keys(cert), "rootca_certificate_name") ? var.trusted_client_certificate_data[cert.rootca_certificate_name].path : false
       }
-      if lookup(app, "add_ssl_profile", false) == true && contains(keys(app), "ssl_profile_certificates")
+      if lookup(app, "add_ssl_profile", false) == true && contains(keys(app), "rootca_certificates")
     ]
     ])
     content {
@@ -263,12 +263,12 @@ resource "azurerm_application_gateway" "ag" {
       name                             = "${app.product}-${app.component}-sslprofile"
       verify_client_cert_issuer_dn     = contains(keys(app), "verify_client_cert_issuer_dn") ? app.verify_client_cert_issuer_dn : false
       trusted_client_certificate_names = flatten([
-        for cert in (contains(keys(app), "ssl_profile_certificates") ? app.ssl_profile_certificates : []) : [
+        for cert in (contains(keys(app), "rootca_certificates") ? app.rootca_certificates : []) : [
           "${app.product}-${app.component}-${cert.rootca_certificate_name}"
         ]
         ])
       }
-      if lookup(app, "add_ssl_profile", false) == true && contains(keys(app), "ssl_profile_certificates")
+      if lookup(app, "add_ssl_profile", false) == true && contains(keys(app), "rootca_certificates")
     ]
     content {
       name                             = ssl_profile.value.name
