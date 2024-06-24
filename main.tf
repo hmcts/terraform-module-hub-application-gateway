@@ -254,7 +254,7 @@ resource "azurerm_application_gateway" "ag" {
     ])
     content {
       name = trusted_client_certificate.value.name
-      data = base64decode(trusted_client_certificate.value.data)
+      data = trusted_client_certificate.value.data
     }
   }
 
