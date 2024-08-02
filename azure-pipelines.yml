@@ -9,7 +9,7 @@ trigger:
     
 variables:
   terraformVersion: 0.14.4
-  agentPool: 'ubuntu-18.04'
+  agentPool: 'ubuntu-latest'
   action:
 
 stages:
